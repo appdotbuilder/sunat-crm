@@ -1,8 +1,23 @@
 
+import { db } from '../db';
+import { messageTemplatesTable } from '../db/schema';
+import { eq } from 'drizzle-orm';
 import { type GetMessageTemplateByIdInput, type MessageTemplate } from '../schema';
 
 export const getMessageTemplateById = async (input: GetMessageTemplateByIdInput): Promise<MessageTemplate | null> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is fetching a specific message template by ID from the database.
-  return null;
+  try {
+    const results = await db.select()
+      .from(messageTemplatesTable)
+      .where(eq(messageTemplatesTable.id, input.id))
+      .execute();
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    return results[0];
+  } catch (error) {
+    console.error('Message template retrieval failed:', error);
+    throw error;
+  }
 };

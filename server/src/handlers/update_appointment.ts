@@ -1,18 +1,50 @@
 
+import { db } from '../db';
+import { appointmentsTable } from '../db/schema';
 import { type UpdateAppointmentInput, type Appointment } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export const updateAppointment = async (input: UpdateAppointmentInput): Promise<Appointment> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is updating an existing appointment in the database.
-  return Promise.resolve({
-    id: input.id,
-    customer_id: input.customer_id || 0,
-    appointment_date: input.appointment_date || new Date(),
-    appointment_time: input.appointment_time || '00:00',
-    status: input.status || 'scheduled',
-    notes: input.notes || null,
-    reminder_sent: input.reminder_sent ?? false,
-    created_at: new Date(),
-    updated_at: new Date()
-  } as Appointment);
+  try {
+    // Build update object with only provided fields
+    const updateData: any = {};
+    
+    if (input.customer_id !== undefined) {
+      updateData.customer_id = input.customer_id;
+    }
+    if (input.appointment_date !== undefined) {
+      updateData.appointment_date = input.appointment_date;
+    }
+    if (input.appointment_time !== undefined) {
+      updateData.appointment_time = input.appointment_time;
+    }
+    if (input.status !== undefined) {
+      updateData.status = input.status;
+    }
+    if (input.notes !== undefined) {
+      updateData.notes = input.notes;
+    }
+    if (input.reminder_sent !== undefined) {
+      updateData.reminder_sent = input.reminder_sent;
+    }
+
+    // Always update the updated_at timestamp
+    updateData.updated_at = new Date();
+
+    // Update appointment record
+    const result = await db.update(appointmentsTable)
+      .set(updateData)
+      .where(eq(appointmentsTable.id, input.id))
+      .returning()
+      .execute();
+
+    if (result.length === 0) {
+      throw new Error(`Appointment with id ${input.id} not found`);
+    }
+
+    return result[0];
+  } catch (error) {
+    console.error('Appointment update failed:', error);
+    throw error;
+  }
 };

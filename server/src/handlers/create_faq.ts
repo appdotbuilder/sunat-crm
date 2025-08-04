@@ -1,16 +1,25 @@
 
+import { db } from '../db';
+import { faqsTable } from '../db/schema';
 import { type CreateFaqInput, type FAQ } from '../schema';
 
 export const createFaq = async (input: CreateFaqInput): Promise<FAQ> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is creating a new FAQ and persisting it in the database.
-  return Promise.resolve({
-    id: 0, // Placeholder ID
-    question: input.question,
-    answer: input.answer,
-    category: input.category || null,
-    is_active: input.is_active,
-    created_at: new Date(),
-    updated_at: new Date()
-  } as FAQ);
+  try {
+    // Insert FAQ record
+    const result = await db.insert(faqsTable)
+      .values({
+        question: input.question,
+        answer: input.answer,
+        category: input.category,
+        is_active: input.is_active
+      })
+      .returning()
+      .execute();
+
+    // Return the created FAQ
+    return result[0];
+  } catch (error) {
+    console.error('FAQ creation failed:', error);
+    throw error;
+  }
 };

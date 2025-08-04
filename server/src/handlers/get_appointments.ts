@@ -1,8 +1,19 @@
 
+import { db } from '../db';
+import { appointmentsTable } from '../db/schema';
 import { type Appointment } from '../schema';
+import { desc } from 'drizzle-orm';
 
 export const getAppointments = async (): Promise<Appointment[]> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is fetching all appointments from the database.
-  return [];
+  try {
+    const results = await db.select()
+      .from(appointmentsTable)
+      .orderBy(desc(appointmentsTable.created_at))
+      .execute();
+
+    return results;
+  } catch (error) {
+    console.error('Failed to fetch appointments:', error);
+    throw error;
+  }
 };
